@@ -1,0 +1,64 @@
+﻿<Window x:Class="StreamDeckApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:StreamDeckApp"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="398.706" Width="525"
+        Initialized="Window_Initialized">
+    <StackPanel>
+        <Button Click="Button_Click_Red">
+            Red
+        </Button>
+        <Button Click="Button_Click_Black">
+            Black
+        </Button>
+        <Button Click="Button_Click_A">
+            A
+        </Button>
+        <Button Click="Button_Click_Redwyre">
+            redwyre
+        </Button>
+
+        <Button Click="Button_Click_1">
+            Dark
+        </Button>
+        <Button Click="Button_Click_2">
+            Bright
+        </Button>
+        <Button Click="Button_Click_Reset">
+            Reset
+        </Button>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="72"/>
+                <ColumnDefinition Width="72"/>
+                <ColumnDefinition Width="72"/>
+                <ColumnDefinition Width="72"/>
+                <ColumnDefinition Width="72"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="72"/>
+                <RowDefinition Height="72"/>
+                <RowDefinition Height="72"/>
+            </Grid.RowDefinitions>
+            <local:StreamDeckButton Grid.Row="0" Grid.Column="0" ImageSource="{Binding ImageSources[4]}"/>
+            <local:StreamDeckButton Grid.Row="0" Grid.Column="1" ImageSource="{Binding ImageSources[3]}" />
+            <local:StreamDeckButton Grid.Row="0" Grid.Column="2" ImageSource="{Binding ImageSources[2]}" />
+            <local:StreamDeckButton Grid.Row="0" Grid.Column="3" ImageSource="{Binding ImageSources[1]}" />
+            <local:StreamDeckButton Grid.Row="0" Grid.Column="4" ImageSource="{Binding ImageSources[0]}" />
+            <local:StreamDeckButton Grid.Row="1" Grid.Column="0" ImageSource="{Binding ImageSources[9]}" />
+            <local:StreamDeckButton Grid.Row="1" Grid.Column="1" ImageSource="{Binding ImageSources[8]}" />
+            <local:StreamDeckButton Grid.Row="1" Grid.Column="2" ImageSource="{Binding ImageSources[7]}" />
+            <local:StreamDeckButton Grid.Row="1" Grid.Column="3" ImageSource="{Binding ImageSources[6]}" />
+            <local:StreamDeckButton Grid.Row="1" Grid.Column="4" ImageSource="{Binding ImageSources[5]}" />
+            <local:StreamDeckButton Grid.Row="2" Grid.Column="0" ImageSource="{Binding ImageSources[14]}" />
+            <local:StreamDeckButton Grid.Row="2" Grid.Column="1" ImageSource="{Binding ImageSources[13]}" />
+            <local:StreamDeckButton Grid.Row="2" Grid.Column="2" ImageSource="{Binding ImageSources[12]}" />
+            <local:StreamDeckButton Grid.Row="2" Grid.Column="3" ImageSource="{Binding ImageSources[11]}" />
+            <local:StreamDeckButton Grid.Row="2" Grid.Column="4" ImageSource="{Binding ImageSources[10]}" />
+        </Grid>
+
+    </StackPanel>
+</Window>
