@@ -5,31 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:StreamDeckApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="398.706" Width="525"
+        Title="MainWindow" Height="419.094" Width="525"
         Initialized="Window_Initialized">
     <StackPanel>
-        <Button Click="Button_Click_Red">
-            Red
-        </Button>
-        <Button Click="Button_Click_Black">
-            Black
-        </Button>
-        <Button Click="Button_Click_A">
-            A
+        <Button Click="Button_Click_Image">
+            redwyre
         </Button>
         <Button Click="Button_Click_Redwyre">
             redwyre
         </Button>
-
-        <Button Click="Button_Click_1">
-            Dark
-        </Button>
-        <Button Click="Button_Click_2">
-            Bright
-        </Button>
         <Button Click="Button_Click_Reset">
-            Reset
+            Show Logo
         </Button>
+        <Slider Minimum="0" Maximum="100" SmallChange="5" LargeChange="20"  ValueChanged="Slider_ValueChanged"></Slider>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="72"/>

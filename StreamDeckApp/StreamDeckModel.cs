@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,13 +16,14 @@ namespace StreamDeckApp
     public class StreamDeckModel
     {
         public StreamDeck StreamDeck;
+        Bitmap maskBitmap = new Bitmap(StreamDeck.ImageWidth, StreamDeck.ImageHeight, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
         const int ButtonCount = 15;
 
         public const int ImageWidth = 72;
         public const int ImageHeight = 72;
 
-        public BitmapSource[] ImageSources { get; } = new BitmapSource[ButtonCount];
+        public WriteableBitmap[] ImageSources { get; } = new WriteableBitmap[ButtonCount];
 
         private void StreamDeck_ButtonChanged(int button, bool state)
         {
@@ -31,32 +34,113 @@ namespace StreamDeckApp
         {
             for (int i = 0; i < ButtonCount; ++i)
             {
-                var imageSource = new WriteableBitmap(ImageWidth, ImageHeight, 96, 96, PixelFormats.Bgr24, null);
-                imageSource.Lock();
+                ImageSources[i] = new WriteableBitmap(ImageWidth, ImageHeight, 96, 96, PixelFormats.Bgr24, null);
+            }
 
-                unsafe
+            using (Graphics g = Graphics.FromImage(maskBitmap))
+            {
+                g.Clear(System.Drawing.Color.Black);
+
+
+                int diameter = 32;
+                var arc = new Rectangle(0, 0, diameter, diameter);
+                var path = new GraphicsPath();
+
+                // top left arc  
+                path.AddArc(arc, 180, 90);
+
+                // top right arc  
+                arc.X = ImageWidth - diameter;
+                path.AddArc(arc, 270, 90);
+
+                // bottom right arc  
+                arc.Y = ImageHeight - diameter;
+                path.AddArc(arc, 0, 90);
+
+                // bottom left arc 
+                arc.X = 0;
+                path.AddArc(arc, 90, 90);
+
+                path.CloseFigure();
+
+                using (path)
                 {
-                    for (int y = 0; y < ImageHeight; ++y)
-                    {
-                        var buffer = (byte*)(imageSource.BackBuffer.ToPointer()) + (imageSource.BackBufferStride * y);
-                        for (int x = 0; x < ImageWidth * 3; x += 3)
-                        {
-                            buffer[x + 0] = 0xFF;
-                            buffer[x + 1] = 0x8F;
-                            buffer[x + 2] = 0x00;
-                        }
-                    }
+                    g.FillPath(new System.Drawing.SolidBrush(System.Drawing.Color.White), path);
                 }
-
-                imageSource.AddDirtyRect(new Int32Rect(0, 0, ImageWidth, ImageHeight));
-                imageSource.Unlock();
-
-                ImageSources[i] = imageSource;
             }
 
             StreamDeck = StreamDeck.Get();
             StreamDeck.ButtonChanged += StreamDeck_ButtonChanged;
             StreamDeck.Open();
+        }
+
+        public void SetBrightness(int brightness)
+        {
+            StreamDeck.SetBrightness(brightness);
+        }
+
+        public async Task SetScreenImageGaps(Bitmap bitmap)
+        {
+            if (bitmap.Width != StreamDeck.ScreenGapsImageWidth || bitmap.Height != StreamDeck.ScreenGapsImageHeight)
+            {
+                throw new InvalidOperationException("Image Width and Height must be 72");
+            }
+
+            if (bitmap.PixelFormat != System.Drawing.Imaging.PixelFormat.Format24bppRgb)
+            {
+                throw new InvalidOperationException("Image format must be PixelFormat.Format24bppRgb");
+            }
+
+            var keyBitmap = new Bitmap(ImageWidth, ImageHeight, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            var destRect = new Rectangle(0, 0, ImageWidth, ImageHeight);
+            using (Graphics g = Graphics.FromImage(keyBitmap))
+            {
+                for (int row = 0; row < 3; ++row)
+                {
+                    for (int col = 0; col < 5; ++col)
+                    {
+                        int x = col * ImageWidth + Math.Max(col - 1, 0) * StreamDeck.Gap;
+                        int y = row * ImageHeight + Math.Max(row - 1, 0) * StreamDeck.Gap;
+                        g.DrawImage(bitmap, destRect, new Rectangle(x, y, ImageWidth, ImageHeight), GraphicsUnit.Pixel);
+
+                        await SetButtonImage((row * 5) + (4 - col), keyBitmap);
+                    }
+                }
+            }
+        }
+
+        public void ShowLogo()
+        {
+            var kb = new StreamDeckDevice.ButtonImageBuilder();
+            kb.Fill(0);
+
+            StreamDeck.ShowLogo();
+            for (int i = 0; i < ButtonCount; ++i)
+            {
+                UpdateButtonImage(i, kb.Bitmap);
+            }
+        }
+
+        public async Task SetButtonImage(int buttonId, Bitmap bitmap)
+        {
+            await StreamDeck.SetButtonImage(buttonId, bitmap);
+
+            UpdateButtonImage(buttonId, bitmap);
+        }
+
+        private void UpdateButtonImage(int buttonId, Bitmap bitmap)
+        {
+            var src = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, StreamDeck.ImageWidth, StreamDeck.ImageHeight),
+                System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+            try
+            {
+                ImageSources[buttonId].WritePixels(new Int32Rect(0, 0, bitmap.Width, bitmap.Height), src.Scan0, src.Stride * src.Height * 3, src.Stride);
+            }
+            finally
+            {
+                bitmap.UnlockBits(src);
+            }
         }
     }
 }

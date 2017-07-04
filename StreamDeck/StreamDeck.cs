@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,13 @@ namespace StreamDeckDevice
         public const int ImageWidth = 72;
         public const int ImageHeight = 72;
         public const int ImagePixels = ImageWidth * ImageHeight;
+
+        public const int ScreenImageWidth = ImageWidth * 5;
+        public const int ScreenImageHeight = ImageHeight * 3;
+
+        public const int Gap = 24; // less than 36
+        public const int ScreenGapsImageWidth = ImageWidth * 5 + Gap * 4;
+        public const int ScreenGapsImageHeight = ImageHeight * 3 + Gap * 2;
 
         const int PAGE_PACKET_SIZE = 8191;
         const int NUM_FIRST_PAGE_PIXELS = 2583;
@@ -79,14 +87,43 @@ namespace StreamDeckDevice
 
         private void GetInfo()
         {
-            byte[] data;
-            _hidDevice.ReadFeatureData(out data, 0x4);
+            _hidDevice.ReadFeatureData(out byte[] data, 0x4);
             FirmwareVersion = Encoding.ASCII.GetString(data, 5, 12).TrimEnd('\0');
         }
 
         public void Close()
         {
             _hidDevice.CloseDevice();
+        }
+
+        public async Task SetScreenImage(Bitmap bitmap)
+        {
+            if (bitmap.Width != ScreenImageWidth || bitmap.Height != ScreenImageHeight)
+            {
+                throw new InvalidOperationException("Image Width and Height must be 72");
+            }
+
+            if (bitmap.PixelFormat != PixelFormat.Format24bppRgb)
+            {
+                throw new InvalidOperationException("Image format must be PixelFormat.Format24bppRgb");
+            }
+
+            var keyBitmap = new Bitmap(ImageWidth, ImageHeight, PixelFormat.Format24bppRgb);
+            var destRect = new Rectangle(0, 0, ImageWidth, ImageHeight);
+            using (Graphics g = Graphics.FromImage(keyBitmap))
+            {
+                for (int row = 0; row < 3; ++row)
+                {
+                    for (int col = 0; col < 5; ++col)
+                    {
+                        int x = col * ImageWidth;
+                        int y = row * ImageHeight;
+                        g.DrawImage(bitmap, destRect, new Rectangle(x, y, ImageWidth, ImageHeight), GraphicsUnit.Pixel);
+
+                        await SetButtonImage((row * 5) + (4 - col), keyBitmap);
+                    }
+                }
+            }
         }
 
         public async Task SetButtonImage(int buttonId, Bitmap bitmap)
@@ -96,7 +133,7 @@ namespace StreamDeckDevice
                 throw new InvalidOperationException("buttonId must be 0-15");
             }
 
-            if (bitmap.Width != ImageWidth || bitmap.Height != ImageWidth)
+            if (bitmap.Width != ImageWidth || bitmap.Height != ImageHeight)
             {
                 throw new InvalidOperationException("Image Width and Height must be 72");
             }
@@ -110,7 +147,7 @@ namespace StreamDeckDevice
 
             byte[] buffer = new byte[ImageBytes];
 
-            System.Runtime.InteropServices.Marshal.Copy(data.Scan0, buffer, 0, ImageBytes);
+            Marshal.Copy(data.Scan0, buffer, 0, ImageBytes);
 
             bitmap.UnlockBits(data);
 
@@ -155,7 +192,7 @@ namespace StreamDeckDevice
             _hidDevice.WriteFeatureData(buffer);
         }
 
-        public void ResetScreen()
+        public void ShowLogo()
         {
             var buffer = new byte[]{
                 0x0B, 0x63
