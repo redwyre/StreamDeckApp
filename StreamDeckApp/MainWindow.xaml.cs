@@ -1,4 +1,4 @@
-﻿using StreamDeckDevice;
+﻿using BlazingHeart.StreamDeck;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -39,42 +39,42 @@ namespace StreamDeckApp
 
         private async void Button_Click_Redwyre(object sender, RoutedEventArgs e)
         {
-            using (ButtonImageBuilder ib = new ButtonImageBuilder())
+            using (KeyImageBuilder ib = new KeyImageBuilder())
             {
                 ib.Fill(0xFFFFFF);
                 ib.DrawText("R", 0xFF0000, true, true);
 
-                await Model.SetButtonImage(4, ib.Bitmap);
+                await Model.SetKeyImage(4, ib.Bitmap);
 
                 ib.Fill(0xFFFFFF);
                 ib.DrawText("E", 0xFF0000, true, true);
 
-                await Model.SetButtonImage(3, ib.Bitmap);
+                await Model.SetKeyImage(3, ib.Bitmap);
 
                 ib.Fill(0xFFFFFF);
                 ib.DrawText("D", 0xFF0000, true, true);
 
-                await Model.SetButtonImage(2, ib.Bitmap);
+                await Model.SetKeyImage(2, ib.Bitmap);
 
                 ib.Fill(0xFFFFFF);
                 ib.DrawText("W", 0xFF0000, true, true);
 
-                await Model.SetButtonImage(1, ib.Bitmap);
+                await Model.SetKeyImage(1, ib.Bitmap);
 
                 ib.Fill(0xFFFFFF);
                 ib.DrawText("Y", 0xFF0000, true, true);
 
-                await Model.SetButtonImage(0, ib.Bitmap);
+                await Model.SetKeyImage(0, ib.Bitmap);
 
                 ib.Fill(0xFFFFFF);
                 ib.DrawText("R", 0xFF0000, true, true);
 
-                await Model.SetButtonImage(9, ib.Bitmap);
+                await Model.SetKeyImage(9, ib.Bitmap);
 
                 ib.Fill(0xFFFFFF);
                 ib.DrawText("E", 0xFF0000, true, true);
 
-                await Model.SetButtonImage(8, ib.Bitmap);
+                await Model.SetKeyImage(8, ib.Bitmap);
             }
         }
 

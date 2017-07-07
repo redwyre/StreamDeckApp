@@ -105,9 +105,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\StreamDeck\StreamDeckDevice.csproj">
+    <ProjectReference Include="..\StreamDeck\BlazingHeart.StreamDeck.csproj">
       <Project>{E5360481-5EB1-49E8-9610-5A553EF16ED5}</Project>
-      <Name>StreamDeckDevice</Name>
+      <Name>BlazingHeart.StreamDeck</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

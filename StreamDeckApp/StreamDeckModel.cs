@@ -1,4 +1,4 @@
-﻿using StreamDeckDevice;
+﻿using BlazingHeart.StreamDeck;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,21 +18,21 @@ namespace StreamDeckApp
         public StreamDeck StreamDeck;
         Bitmap maskBitmap = new Bitmap(StreamDeck.ImageWidth, StreamDeck.ImageHeight, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
-        const int ButtonCount = 15;
+        const int KeyCount = 15;
 
         public const int ImageWidth = 72;
         public const int ImageHeight = 72;
 
-        public WriteableBitmap[] ImageSources { get; } = new WriteableBitmap[ButtonCount];
+        public WriteableBitmap[] ImageSources { get; } = new WriteableBitmap[KeyCount];
 
-        private void StreamDeck_ButtonChanged(int button, bool state)
+        private void StreamDeck_KeyChanged(int key, bool state)
         {
-            Debug.WriteLine($"Button: {button} State: {state}");
+            Debug.WriteLine($"Key: {key} State: {state}");
         }
 
         public StreamDeckModel()
         {
-            for (int i = 0; i < ButtonCount; ++i)
+            for (int i = 0; i < KeyCount; ++i)
             {
                 ImageSources[i] = new WriteableBitmap(ImageWidth, ImageHeight, 96, 96, PixelFormats.Bgr24, null);
             }
@@ -70,7 +70,7 @@ namespace StreamDeckApp
             }
 
             StreamDeck = StreamDeck.Get();
-            StreamDeck.ButtonChanged += StreamDeck_ButtonChanged;
+            StreamDeck.KeyChanged += StreamDeck_KeyChanged;
             StreamDeck.Open();
         }
 
@@ -103,7 +103,7 @@ namespace StreamDeckApp
                         int y = row * ImageHeight + Math.Max(row - 1, 0) * StreamDeck.Gap;
                         g.DrawImage(bitmap, destRect, new Rectangle(x, y, ImageWidth, ImageHeight), GraphicsUnit.Pixel);
 
-                        await SetButtonImage((row * 5) + (4 - col), keyBitmap);
+                        await SetKeyImage((row * 5) + (4 - col), keyBitmap);
                     }
                 }
             }
@@ -111,31 +111,31 @@ namespace StreamDeckApp
 
         public void ShowLogo()
         {
-            var kb = new StreamDeckDevice.ButtonImageBuilder();
+            var kb = new KeyImageBuilder();
             kb.Fill(0);
 
             StreamDeck.ShowLogo();
-            for (int i = 0; i < ButtonCount; ++i)
+            for (int i = 0; i < KeyCount; ++i)
             {
-                UpdateButtonImage(i, kb.Bitmap);
+                UpdateKeyImage(i, kb.Bitmap);
             }
         }
 
-        public async Task SetButtonImage(int buttonId, Bitmap bitmap)
+        public async Task SetKeyImage(int keyId, Bitmap bitmap)
         {
-            await StreamDeck.SetButtonImage(buttonId, bitmap);
+            await StreamDeck.SetKeyImage(keyId, bitmap);
 
-            UpdateButtonImage(buttonId, bitmap);
+            UpdateKeyImage(keyId, bitmap);
         }
 
-        private void UpdateButtonImage(int buttonId, Bitmap bitmap)
+        private void UpdateKeyImage(int keyId, Bitmap bitmap)
         {
             var src = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, StreamDeck.ImageWidth, StreamDeck.ImageHeight),
                 System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
             try
             {
-                ImageSources[buttonId].WritePixels(new Int32Rect(0, 0, bitmap.Width, bitmap.Height), src.Scan0, src.Stride * src.Height * 3, src.Stride);
+                ImageSources[keyId].WritePixels(new Int32Rect(0, 0, bitmap.Width, bitmap.Height), src.Scan0, src.Stride * src.Height * 3, src.Stride);
             }
             finally
             {

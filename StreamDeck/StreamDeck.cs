@@ -10,17 +10,17 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StreamDeckDevice
+namespace BlazingHeart.StreamDeck
 {
     public class StreamDeck : IDisposable
     {
         public delegate void InsertedEventHandler();
         public delegate void RemovedEventHandler();
-        public delegate void ButtonEventHandler(int button, bool state);
+        public delegate void KeyEventHandler(int key, bool state);
 
         public event InsertedEventHandler Inserted;
         public event RemovedEventHandler Removed;
-        public event ButtonEventHandler ButtonChanged;
+        public event KeyEventHandler KeyChanged;
 
         const int VendorId = 0x0FD9;
         const int ProductId = 0x0060;
@@ -47,7 +47,7 @@ namespace StreamDeckDevice
         HidDevice _hidDevice;
         bool _attached;
         int _isReading;
-        bool[] _buttonState = new bool[16];
+        bool[] _keyState = new bool[16];
 
         public string Manufacturer { get; private set; }
         public string ProductName { get; private set; }
@@ -120,17 +120,17 @@ namespace StreamDeckDevice
                         int y = row * ImageHeight;
                         g.DrawImage(bitmap, destRect, new Rectangle(x, y, ImageWidth, ImageHeight), GraphicsUnit.Pixel);
 
-                        await SetButtonImage((row * 5) + (4 - col), keyBitmap);
+                        await SetKeyImage((row * 5) + (4 - col), keyBitmap);
                     }
                 }
             }
         }
 
-        public async Task SetButtonImage(int buttonId, Bitmap bitmap)
+        public async Task SetKeyImage(int keyId, Bitmap bitmap)
         {
-            if (buttonId < 0 || buttonId > 15)
+            if (keyId < 0 || keyId > 15)
             {
-                throw new InvalidOperationException("buttonId must be 0-15");
+                throw new InvalidOperationException("keyId must be 0-15");
             }
 
             if (bitmap.Width != ImageWidth || bitmap.Height != ImageHeight)
@@ -151,10 +151,10 @@ namespace StreamDeckDevice
 
             bitmap.UnlockBits(data);
 
-            await SetButtonImage(buttonId, buffer);
+            await SetKeyImage(keyId, buffer);
         }
 
-        public async Task SetButtonImage(int buttonId, byte[] imageBuffer)
+        public async Task SetKeyImage(int keyId, byte[] imageBuffer)
         {
             if (imageBuffer.Length != ImageBytes)
             {
@@ -175,7 +175,7 @@ namespace StreamDeckDevice
                 }
             }
 
-            await SendImageData(buttonId, newBuffer);
+            await SendImageData(keyId, newBuffer);
         }
 
         public void SetBrightness(int brightness)
@@ -204,10 +204,10 @@ namespace StreamDeckDevice
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="buttonId"></param>
+        /// <param name="keyId"></param>
         /// <param name="buffer">72x72 BGR, reversed rows</param>
         /// <returns></returns>
-        private async Task SendImageData(int buttonId, byte[] buffer)
+        private async Task SendImageData(int keyId, byte[] buffer)
         {
             if (buffer.Length != ImageBytes)
             {
@@ -229,7 +229,7 @@ namespace StreamDeckDevice
                 packet[i] = page1Header[i];
             }
 
-            packet[5] = (byte)(buttonId + 1);
+            packet[5] = (byte)(keyId + 1);
 
             const int imageOffset = 70;
 
@@ -254,7 +254,7 @@ namespace StreamDeckDevice
                 packet[i] = page2Header[i];
             }
 
-            packet[5] = (byte)(buttonId + 1);
+            packet[5] = (byte)(keyId + 1);
 
             const int imageOffset2 = 16;
 
@@ -285,16 +285,16 @@ namespace StreamDeckDevice
                     {
                         bool newState = report.Data[i] != 0;
 
-                        if (_buttonState[i] != newState)
+                        if (_keyState[i] != newState)
                         {
-                            ButtonChanged?.Invoke(i, newState);
+                            KeyChanged?.Invoke(i, newState);
                         }
 
-                        _buttonState[i] = newState;
-                        sb.Append(_buttonState[i] ? '1' : '0');
+                        _keyState[i] = newState;
+                        sb.Append(_keyState[i] ? '1' : '0');
                     }
 
-                    Debug.WriteLine($"Buttons: {sb.ToString()}");
+                    Debug.WriteLine($"Keys: {sb.ToString()}");
                 }
             }
 
@@ -321,7 +321,7 @@ namespace StreamDeckDevice
             Removed?.Invoke();
         }
 
-        public Bitmap CreateButtonBitmap()
+        public Bitmap CreateKeyBitmap()
         {
             return new Bitmap(ImageWidth, ImageHeight, PixelFormat.Format24bppRgb);
         }

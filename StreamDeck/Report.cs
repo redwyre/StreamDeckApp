@@ -1,9 +1,9 @@
 ﻿using HidLibrary;
 using System;
 
-namespace StreamDeckDevice
+namespace BlazingHeart.StreamDeck
 {
-    public class Report
+    internal class Report
     {
         private readonly byte[] _data;
         private readonly HidDeviceData.ReadStatus _status;
