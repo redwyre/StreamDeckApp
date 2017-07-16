@@ -1,1 +1,0 @@
-nuget pack BlazingHeart.StreamDeck.csproj
